@@ -54,7 +54,45 @@
  */
 class Solution {
     public ListNode addTwoNumbers(ListNode l1, ListNode l2) {
-        
+        /*
+        * 由于输入的两个链表都是逆序存储数字的位数的，因此两个链表中同一位置的数字可以直接相加。
+        * 我们同时遍历两个链表，逐位计算它们的和，并与当前位置的进位值相加。
+        * 具体而言，如果当前两个链表处相应位置的数字为n1，n2，进位值为carry，则它们的和为n1+n2+carry；
+        * 其中，答案链表处相应位置的数字为（n1+n2+carry）mod 10，而新的进位值为n1+n2+carry向下取整。
+        * 如果两个链表的长度不同，则可以认为长度短的链表的后面有若干个0。
+        * 此外，如果链表遍历结束后，有carry>0，还需要在答案链表的后面附加一个节点，节点的值为carry*/
+        ListNode head = null, tail = null;
+        int carry = 0;
+        // 只要两个链表至少有一个还有节点，就继续循环
+        while (l1 != null || l2 != null){
+            // 如果当前节点存在，取它的值；不存在，取0
+            int n1 = l1 != null ? l1.val : 0;
+            int n2 = l2 != null ? l2.val : 0;
+            // 当前位的总和 = 第一个数的当前位 + 第二个数的当前位 +上一次的进位
+            int sum = n1 + n2 + carry;
+            // 创建第一个节点
+            if(head == null){
+                head = tail = new ListNode(sum % 10);
+            }else{
+                // 追加后续节点
+                tail.next = new ListNode(sum % 10);
+                tail = tail.next;
+            }
+            // 更新进位
+            carry = sum / 10;
+            // 移动指针
+            if(l1 != null){
+                l1 = l1.next;
+            }
+            if(l2 != null){
+                l2 = l2.next;
+            }
+        }
+        // 两个链表均为空 即两个链表处理完成
+        // 如果还有进位 追加进位节点
+        if(carry > 0){
+            tail.next = new ListNode(carry);
+        }
+        return head;
     }
 }
-//leetcode submit region end(Prohibit modification and deletion)
