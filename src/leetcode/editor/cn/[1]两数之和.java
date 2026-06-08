@@ -46,15 +46,19 @@
 // Related Topics 数组 哈希表 👍 21060 👎 0
 
 
+import java.util.HashMap;
+
 //leetcode submit region begin(Prohibit modification and deletion)
 class Solution {
     public int[] twoSum(int[] nums, int target) {
-        /*数组*/
-        int n = nums.length;
-        for (int i = 0; i < n; i++) {
-            for (int j = i + 1; j < n; j++) {
-                return new int[]{i,j};
+        /*哈希表
+        * 使用哈希表，可以将寻找target-x的时间复杂度从O（N）降低到O（1）。创建一个哈希表，对于每一个x，我们首先查询哈希表中是否存在target-x，然后将x插入到哈希表中，即可保证不会让x和自己匹配*/
+        HashMap<Integer, Integer> hashtable = new HashMap<>();
+        for (int i = 0; i < nums.length; i++) {
+            if (hashtable.containsKey(target-nums[i])){
+                return new int[]{hashtable.get(target-nums[i]),i};
             }
+            hashtable.put(nums[i],i);
         }
         return new int[0];
     }
