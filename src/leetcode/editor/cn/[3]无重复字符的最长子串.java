@@ -39,85 +39,52 @@
 // Related Topics 哈希表 字符串 滑动窗口 👍 11500 👎 0
 
 
+import java.util.HashSet;
+import java.util.Map;
+
 //leetcode submit region begin(Prohibit modification and deletion)
 class Solution {
     public int lengthOfLongestSubstring(String s) {
-        /*
-        * 对于一个子串而言，如果它是回文串，并且长度大于2，那么将它首尾的两个字母去除之后，它仍然是个回文串。
-        * 例如对于字符串“ababa”，如果我们已经知道“bab”是回文串，那么“ababa”一定是回文串，这是因为它的首尾两个字母都是“a”。
-        * 根据这样的思路，我们就可以用动态规划的方法解决本题。
-        * 我们用P(i,j)表示是字符串s的第i到j个字母组成的串（下文表示成s[i,j]）是否为回文串：
-        * P(i,j) = true，如果子串Si...Sj是回文串
-        * P(i,j) = false，其他情况
-        * 这里的其他情况包含两种可能性：
-        * s[i,j]本身不是一个回文串；
-        * i>j，此时s[i,j]本身不合法。
-        * 那么我们就可以写出动态规划的转移方程：
-        * P(i,j) = P(i+1,j-1)^(Si==Sj)
-        * 也就是说，只有s[i+1:j-1]是回文串，并且s的第i和j个字母相同时，s[i,j]才会是回文串。
-        * 上述的讨论是建立在子串长度大于2的前提之上的，还需考虑动态规划中的边界条件，即子串的长度为1或2。
-        * 长度为1显然是，长度为2只要它的两个字母相同即是。
-        * 因此我们就可以写出动态规划的边界条件：
-        * P(i,i) = true
-        * P(i,i+1) = (Si==Si+1)
-        * 根据这个思路，我们就可以完成动态规划了，最终的答案即为所有P(i,j) = true中j-1+1（即子串长度）的最大值。
-        * 注意：在状态转移方程中，我们是从长度较短的字符串向长度较长的字符串进行转移的，因此一定要注意动态规划的循环顺序。
-        * */
-        int len = s.length();
-        // 如果长度小于2（0或1），字符串本身就是回文，直接返回
-        if (len < 2){
-            return s;
-        }
+        /**
+         * 以 (a)bcabcbb开始的最长字符串为(abc)abcbb
+         * 以 a(b)cabcbb开始的最长字符串为a(bca)bcbb
+         * 以 ab(c)abcbb开始的最长字符串为ab(cab)cbb
+         * 以 abc(a)bcbb开始的最长字符串为abc(abc)bb
+         * 以 abca(b)cbb开始的最长字符串为abca(bc)bb
+         * 以 abcab(c)bb开始的最长字符串为abcab(cb)b
+         * 以 abcabc(b)b开始的最长字符串为abcabc(b)b
+         * 以 abcabcb(b)开始的最长字符串为abcabcb(b)
+         * 如果我们一次递增地枚举子串的起始位置，那么子串的结束位置也是递增的！
+         * 这里的原因在于，假设我们选择字符串中的第k个字符作为起始位置，并且得到了不包含重复字符的最长子串的结束位置为rk。
+         * 那么当我们选择第k+1个字符作为起始位置时，首先从k+1到rk的字符显然是不重复的，并且由于少了原本的第k个字符，我们可以尝试继续增大rk，直到右侧出现了重复字符位置。
+         * 滑动窗口
+         * 我们使用两个指针表示字符串中的某个字符（或窗口）的左右边界，其中左指针代表上文中枚举子串的起始位置，而右指针则为上文中的rk
+         * 在每一步的操作中，我们会将左指针向右移动一格，表示我们开始枚举下一个字符作为起始位置，然后我们可以不断地向右移动右指针，但需要保证这两个指针对应的子串中没有重复的字符。
+         * 在移动结束后，这个子串就对应着以左指针开始的，不包含重复字符的最长子串。我们记录下这个子串的长度‘
+         * 在枚举结束后，我们找到的最长的子串即为答案。
+         * 在上面的流程中，我们还需要使用一种数据结构来判断呢是否有重复的字符，常用的数据结构为哈希集合（HashSet）。
+         * 在左指针向右移动的时候，我们从哈希集合中移除一个字符，在右指针向右移动的时候，我们往哈希集合中添加一个字符。
+         */
 
-        // 记录最长回文子串的长度，初始为1（单个字符）
-        int maxlen = 1;
-        // 记录最长回文子串的起始索引，初始为0
-        int begin = 0;
-        
-        // 创建dp表 为一个len*len的二维布尔数组
-        // dp[i][j]表示：从索引i到索引j的子串s[i..j]是否是回文串
-        boolean[][] dp = new boolean[len][len];
-        
-        // 初始化对角线 所有长度为1的子串都是回文
-        for (int i = 0; i < len; i++) {
-            dp[i][i] = true;
-        }
-        // 把字符串转为字符数组，方便快速访问
-        char[] charArray = s.toCharArray();
-        // 外层循环：枚举子串长度L，从2开始到len结束
-        for (int L = 0; L < len; L++) {
-            // 内层循环：枚举子串的左边界
-            for (int i = 0; i < len; i++) {
-                // 根据长度L和左边界i，计算右边界
-                // j - i + 1 = L ——> j = L + i - 1
-                int j = L + i - 1;
-                // 如果右边界j超出了字符串长度，说明这个i无效
-                if(j >= len){
-                    break;
-                }
-
-                // 情况一：首尾字符不相等
-                if (charArray[i] != charArray[j]){
-                    dp[i][j] = false;
-                }else{
-                    // 首尾字符相等，需要看去掉首尾之后的子串是否为回文
-                    // 子串长度<=3，一定是回文
-                    if (j - i < 3){
-                        dp[i][j] = true;
-                    }else{
-                        // 子串长度>=4，取决于dp[i+1][j-1]
-                        dp[i][j] = dp[i+1][j-1];
-                    }
-                }
-                // 如果是回文，且长度大于之前记录的最长长度，就更新maxLen和begin
-                if (dp[i][j] && j - i + 1 > maxlen){
-                    maxlen = j - i + 1;
-                    begin = i;
-                }
+        HashSet<Character> occ = new HashSet<Character>();
+        int n = s.length();
+        // 右指针，初始值为-1，相当于我们在字符串的左边界的左侧，还没有开始移动
+        int rk = -1, ans = 0;
+        for (int i = 0; i < n; i++) {
+            if (i != 0){
+                // 左指针向右移动一格，移除一个字符
+                occ.remove(s.charAt(i - 1));
             }
+            // 右指针的下一个位置没有越界且下一个字符不在当前窗口的集合中
+            while(rk + 1 < n && !occ.contains(s.charAt(rk + 1)) ){
+                occ.add(s.charAt(rk + 1));
+                // 右指针移动
+                ++rk;
+            }
+            // 取最长的无重复子串
+            ans = Math.max(ans, rk - i + 1);
         }
-        // 根据记录的起始位置和长度，截取并返回最长回文子串
-        return s.substring(begin,begin + maxLen);
+        return ans;
     }
 }
 //leetcode submit region end(Prohibit modification and deletion)
