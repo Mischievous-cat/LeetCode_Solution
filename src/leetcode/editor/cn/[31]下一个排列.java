@@ -55,7 +55,51 @@
 //leetcode submit region begin(Prohibit modification and deletion)
 class Solution {
     public void nextPermutation(int[] nums) {
-        
+        /*
+        * 下一个排列总是比当前排列要大，除非该排列已经是最大的排列
+        * 我们希望找到一种方法，能够找到一个大于当前序列的新序列，且变大的幅度尽可能小
+        * 1、我们需要将一个坐标的较小数与一个右边的较大数交换，以能够让当前排列变大，从而得到下一个排列
+        * 2、同时我们要让这个较小数尽量靠右，而较大数尽可能小。
+        * 当交换完成后，较大数右边的数需要按照升序重新排列，这样可以保证新排列大于原来排列的情况下，使变大的幅度尽可能小。
+        * eg.[4,5,2,6,3,1]
+        * · 我们能够找到的符合条件的一对[较小数]与[较大数]的组合为2和3，满足[较小数]尽量靠右，而[较大数]尽可能小。
+        * · 当我们完成交换后排列变为[4,5,3,6,2,1]，此时我们可以重排较小数右边的序列，序列变为[4,5,3,1,2,6]
+        * 对于长度为n的排列a
+        * 1、首先从后向前查找第一个顺序对（i,i+1）满足a[i]<a[i+1](非降序--左边min)，这样较小数即为a[i]，此时[i+1,n)必然是下降序列
+        * 2、如果找到了顺序对，那么在区间[i+1,n)中从后向前查找第一个元素j满足a[i]<a[j]。这样，较大数即为a[j](右边max)
+        * 为什么从后向前？
+        * 因为[i+1,n)是降序的，所以从后往前找，第一个比a[i]大的数，就是比a[i]大的数中最小的一个
+        * 3、交换a[i]与a[j]此时可以证明区间[i+1,n)必为降序，可以直接使用双指针反转区间[i+1,n)使其变为升序，而无需对该区间进行排序
+        * */
+        // nums[i]要和nums[i+1]比较，所以i的最大值是nums.length-2
+        int i = nums.length - 2;
+        while(i >= 0 && nums[i] >= nums[i+1]){
+            i--;
+        }
+        // 在右边降序区间中找[较大数]
+        if (i >= 0){
+            int j = nums.length - 1;
+            while(j >= 0 && nums[i] >= nums[j]){
+                j--;
+            }
+            // 交换nums[i]和nums[j]
+            swap(nums, i , j);
+        }
+        // 反转右边的降序区间，变成升序
+        reverse(nums, i+1);
+    }
+    public void swap(int[] nums, int i, int j){
+        int temp = nums[i];
+        nums[i] = nums[j];
+        nums[j] = temp;
+    }
+    public void reverse(int[] nums, int start){
+        int left = start, right = nums.length-1;
+        while(left < right){
+            swap(nums, left, right);
+            left++;
+            right--;
+        }
     }
 }
 //leetcode submit region end(Prohibit modification and deletion)
