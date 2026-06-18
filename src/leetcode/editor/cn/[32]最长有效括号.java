@@ -46,7 +46,39 @@
 //leetcode submit region begin(Prohibit modification and deletion)
 class Solution {
     public int longestValidParentheses(String s) {
-        
+        /*动态规划
+        * 定义dp[i]表示以下标i字符结尾的最长有效括号的长度，将dp数组全部初始化为0.
+        * 显然有效的子串一定以“)”结尾，因此我们知道以"("结尾的子串对应的dp值必定为0，只需求解“）”在dp数组中对应位置的值。
+        * 情况一：s[i] = ")" 且s[i-1] = "("，形如"...()"可以推出
+        * dp[i] = dp[i-2] + 2
+        * 我们可以进行这样的转移，是因为结束部分的“(”是一个有效字符串，并且将之前有效子字符串的长度增加了2
+        * 情况二：s[i]=")"且s[i-1]=")"，形如“...))”我们可以推出
+        * 如果s[i-dp[i-1]-1]="("，那么
+        * dp[i]=dp[i-1]+dp[i-dp[i-1]-2]+2
+        * 我们考虑如果倒数第二个“)”是一个有效子字符串的一部分（记作subs）对于最后一个“）”，如果它是一个更长子字符串的一部分，
+        * 那么它一定有一个对应的“（”且它的位置在倒数第二个“）”所在的有效字符串的前面（也就是subs的前面）。
+        * 因此，如果子字符串subs的前面恰好是“(”，那么我们就用2加上subs的长度（dp[i-1]）取更新dp[i]。
+        * 同时，我们也会把有效子串subs之前的有效子串的长度也加上，也就是再加上dp[i-dp[i-1]-2]
+        * 总结：形如"...))"dp[i]=基础+内部+外部
+        *  */
+        int maxans = 0;
+        int[] dp = new int[s.length()];
+        for (int i = 1; i < s.length(); i++) {
+            if (s.charAt(i) == ')'){
+                // 情况一：形如“...()” dp[i]=dp[i-2]+2
+                if (s.charAt(i-1) == '('){
+                    // i>=2是在问：当前i前面还有至少两个字符吗？
+                    dp[i] = (i >= 2 ? dp[i-2] : 0) + 2;
+                }
+                // 情况二：形如“...))” dp[i] = dp[i-1] + dp[i-dp[i-1]-2] + 2
+                // i-dp[i-1] > 0 是在问：内部有效子串前面，还有至少一个字符吗？
+                else if (i - dp[i-1] > 0 && s.charAt(i - dp[i-1] -1 ) == '(') {
+                    // 内部有效子串的前面，是否还至少有两个字符？
+                    dp[i] = dp[i-1] +((i-dp[i-1]) >= 2 ? dp[i-dp[i-1]-2] : 0) + 2;
+                }
+                maxans = Math.max(maxans,dp[i]);
+            }
+        }
+        return maxans;
     }
 }
-//leetcode submit region end(Prohibit modification and deletion)
