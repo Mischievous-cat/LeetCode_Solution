@@ -42,7 +42,25 @@
 //leetcode submit region begin(Prohibit modification and deletion)
 class Solution {
     public int searchInsert(int[] nums, int target) {
-        
+        /*二分查找
+        * 考虑插入的位置pos，它成立的条件为
+        * nums[pos-1] < target <= nums[pos]
+        * 其中nums代表排序数组。由于如果存在这个目标值，我们返回的索引也是pos，因此我们可以将两个条件合并得出最后的目标：
+        * 在一个有序数组中找第一个大于等于target的下标
+        * 不断用二分法逼近查找第一个大于等于target的下标
+        * */
+        int n = nums.length;
+        int left = 0, right = n - 1;
+        while(left < right){
+            int mid = ((right - left) >> 1) + left;
+            if(nums[mid] < target){
+                left = mid + 1;
+            }else{
+                right = mid - 1;
+            }
+        }
+        // 最终 left 会停在第一个 >= target 的位置。
+        return left;
     }
 }
 //leetcode submit region end(Prohibit modification and deletion)
